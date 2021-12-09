@@ -1,0 +1,8 @@
+README.md
+setup.py
+deltatools/__init__.py
+deltatools/functions.py
+deltatools.egg-info/PKG-INFO
+deltatools.egg-info/SOURCES.txt
+deltatools.egg-info/dependency_links.txt
+deltatools.egg-info/top_level.txt
