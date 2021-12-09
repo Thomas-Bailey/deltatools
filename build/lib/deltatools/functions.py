@@ -1,10 +1,12 @@
 from pyspark.sql.functions import lit, substring, sha2, concat_ws
-from pyspark.sql import SparkSession
+from pyspark.sql import SparkSession as s
 from delta.tables import *
+import IPython
 
+dbutils = IPython.get_ipython().user_ns["dbutils"]
 
 # Functions to run checks against the data lake
-class verify_lake:
+class verify:
   
   #Initialise variables
   def __init__(self,path):
@@ -18,7 +20,8 @@ class verify_lake:
     except:
       return False
 
-class load_deltas:
+class load:
+  
   
   # Initialise class variables
   def __init__(self,source_path,target_path,primary_key,database_name,table_name):
@@ -47,20 +50,24 @@ class load_deltas:
 
   #Run merge from source to target
   def upsert(self):
+    #Start Spark session
+    sesh = s.builder.getOrCreate()
+    
     #Read delta file as a data frame
-    source_deltas = spark.read.parquet(self.source_path)
+    source_deltas = sesh.read.parquet(self.source_path)
+    
     # Add a SHA2 row hash column to enable delta indentification
-    source_deltas = source_deltas.withColumn("row_hash",sha2(concat_ws("||", *df.columns), 256))
+    source_deltas = source_deltas.withColumn("row_hash",sha2(concat_ws("||", *source_deltas.columns), 256))
     
     #Determine if merge or new load
     # Check if the delta lake table exists
-    bool_test = verify_lake(self.target_path).check_path()
+    bool_test = verify(self.target_path).check_path()
 
     # If statement evaluating boolean variable.  If the path is True (i.e. we have already created the delta table), then stage in the temp directory. Otherwise, write the table to the lake.
     if bool_test is True:
       print("Delta table exists. Merge needed.") #Log message
        #Run merge
-      deltaTable = DeltaTable.forPath(spark, self.target_path)
+      deltaTable = DeltaTable.forPath(sesh, self.target_path)
 
       merge_join = None
 
@@ -68,7 +75,7 @@ class load_deltas:
         if index == 0:
           merge_join = ('tgt.'+key_column+' = src.'+key_column)
         else:
-          merge_join = merge_join + (' AND tgt.'+key_column+' = src.'+key_column)
+          merge_join = merge_join + (' and tgt.'+key_column+' = src.'+key_column)
 
       deltaTable.alias("tgt").merge(
           source_deltas.alias("src"),
@@ -79,7 +86,7 @@ class load_deltas:
       print('Merge completed successfully, merge join was: "'+ merge_join+'"')
 
     else:
-      print("No delta lake files found. Creating parquet structure, you will need to run a CREATE TABLE statement in Databricks with the same schema.")
+      print("No delta lake files found. Creating delta lake table & metastore object.")
       print('Schema is as follows:')
       source_deltas.printSchema()
       #Create table
@@ -90,14 +97,18 @@ class load_deltas:
       
        
   def delete(self):
+    #Start Spark session
+    sesh = s.builder.getOrCreate()
+    
     # Check if the delta lake table exists
-    bool_test = verify_lake(self.target_path).check_path()
+    bool_test = verify(self.target_path).check_path()
+    
     if bool_test is True:
       #Concat delta database & table name
       delta_table = self.database_name+'.'+self.table_name
       #create a temporary SQL view from the source deltas data frame
       view = "src_"+self.table_name
-      source_deltas = spark.read.parquet(self.source_path).createOrReplaceTempView(view) 
+      source_deltas = sesh.read.parquet(self.source_path).createOrReplaceTempView(view) 
       #Build delete SQL
       merge_join = None
 
@@ -109,7 +120,6 @@ class load_deltas:
       
       sql = "delete from " + delta_table + " as tgt where not exists (select * from " + view + " as src where " + merge_join + ")"
       print("delete statement: "+sql)
-      sesh = SparkSession.builder.getOrCreate()
       deletes = sesh.sql(sql)
       deletes.show()
       print("Deletes finished.")

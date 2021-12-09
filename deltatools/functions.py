@@ -1,11 +1,27 @@
 from pyspark.sql.functions import lit, substring, sha2, concat_ws
 from pyspark.sql import SparkSession as s
 from delta.tables import *
-from deltatools import verify as v
+import IPython
+
+dbutils = IPython.get_ipython().user_ns["dbutils"]
+
+# Functions to run checks against the data lake
+class verify:
+  
+  #Initialise variables
+  def __init__(self,path):
+    self.path = path
+  
+  #check if path exists
+  def check_path(self):
+    try:  
+      dbutils.fs.ls(self.path)
+      return True
+    except:
+      return False
 
 class load:
   
- 
   
   # Initialise class variables
   def __init__(self,source_path,target_path,primary_key,database_name,table_name):
@@ -45,7 +61,7 @@ class load:
     
     #Determine if merge or new load
     # Check if the delta lake table exists
-    bool_test = v.verify(self.target_path).check_path()
+    bool_test = verify(self.target_path).check_path()
 
     # If statement evaluating boolean variable.  If the path is True (i.e. we have already created the delta table), then stage in the temp directory. Otherwise, write the table to the lake.
     if bool_test is True:
@@ -85,7 +101,7 @@ class load:
     sesh = s.builder.getOrCreate()
     
     # Check if the delta lake table exists
-    bool_test = v.verify(self.target_path).check_path()
+    bool_test = verify(self.target_path).check_path()
     
     if bool_test is True:
       #Concat delta database & table name

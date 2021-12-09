@@ -1,4 +1,6 @@
-from pyspark import dbutils as db
+import IPython
+
+dbutils = IPython.get_ipython().user_ns["dbutils"] 
 
 # Functions to run checks against the data lake
 class verify:
@@ -10,7 +12,7 @@ class verify:
   #check if path exists
   def check_path(self):
     try:  
-      db.fs.ls(self.path)
+      dbutils.fs.ls(self.path)
       return True
     except:
       return False

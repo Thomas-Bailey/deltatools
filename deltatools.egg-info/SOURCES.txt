@@ -1,8 +1,7 @@
 README.md
 setup.py
 deltatools/__init__.py
-deltatools/load.py
-deltatools/verify.py
+deltatools/functions.py
 deltatools.egg-info/PKG-INFO
 deltatools.egg-info/SOURCES.txt
 deltatools.egg-info/dependency_links.txt

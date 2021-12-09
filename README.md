@@ -30,22 +30,22 @@ In your Databricks UI, navigate:
 9. Restart your cluster.
 
 --------------
--- Features --
+Features 
 --------------
 
 The current available classes & methods are:
 
--- deltatools.verify_lake(path)
+-- deltatools.functions.verify(path)
 
 Contains methods to run checks against data lake storage using dbutils.
 'path' is the location you are checking, e.g. path = "dbfs/mnt/data/contoso"
 
 Available methods:
 
-    deltatools.verify(path).check_path() 
+    deltatools.functions.verify(path).check_path() 
         Checks whether 'path' exists, returns True if so else False.
 
--- deltatools.load_deltas(source_path,target_path,primary_key,database_name,table_name)
+-- deltatools.functions.load(source_path,target_path,primary_key,database_name,table_name)
 
 Performs delta lake insert/update/delete operations.  Parquet files only, please convert any source files to parquet.
 
@@ -64,10 +64,12 @@ Parameter defintions:
 
 Available methods:
 
-    deltatools.load(source_path,target_path,primary_key,database_name,table_name).info()
+    deltatools.functions.load(source_path,target_path,primary_key,database_name,table_name).info()
         Returns the 'source_path', 'target_path', 'primary_key' parameters and how a merge join statement would be cosntructed.
 
     Example call:
+
+        from deltatools import functions as f
 
         src="/mnt/data/source/contoso/sales"
         tgt="/mnt/data/delta/contoso/sales"
@@ -75,14 +77,14 @@ Available methods:
         db = "contoso"
         tbl = "sales"
 
-        load(src,tgt,keys,db,tbl).info()
+        f.load(src,tgt,keys,db,tbl).info()
 
 
     deltatools.load(source_path,target_path,primary_key,database_name,table_name).upsert()
         If table does not exist, creates a delta lake table with the data in 'source_path' and creates a delta lake table.  
         Infers the schema from source and stores in the metastore, so will appear in the Data UI.
         If table exists, runs an upsert statement:
-
+            
             deltaTable.alias("tgt").merge(
             source_deltas.alias("src"),
             merge_join) \
@@ -92,13 +94,15 @@ Available methods:
 
         Example call:
 
+            from deltatools import functions as f
+
             src="/mnt/data/source/contoso/sales"
             tgt="/mnt/data/delta/contoso/sales"
             keys=["id"]
             db = "contoso"
             tbl = "sales"
 
-            load(src,tgt,keys,db,tbl).upsert()
+            f.load(src,tgt,keys,db,tbl).upsert()
 
     deltatools.load(source_path,target_path,primary_key,database_name,table_name).delete()
         If table exists, creates temporary view of 'source_path' and deletes where not exists in 'target_path'.
@@ -106,10 +110,12 @@ Available methods:
 
         Example call:
 
+            from deltatools import functions as f
+
             src="/mnt/data/source/contoso/sales"
             tgt="/mnt/data/delta/contoso/sales"
             keys=["id"]
             db = "contoso"
             tbl = "sales"
 
-            load_dloadeltas(src,tgt,keys,db,tbl).delete()
+            f.load(src,tgt,keys,db,tbl).delete()
