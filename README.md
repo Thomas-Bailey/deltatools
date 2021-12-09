@@ -14,7 +14,8 @@ Author: Thomas Bailey (thomasjohnbailey@gmail.com)
 -- Installation instructions --
 -------------------------------
 
-Download the deltatools '.whl' file in the 'dist' folder  
+
+Download the deltatools '.whl' file in the 'dist' folder.  
 
 In your Databricks UI, navigate:
 
