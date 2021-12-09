@@ -22,6 +22,8 @@ class verify:
 
 class load:
   
+
+  merge_join = None
   
   # Initialise class variables
   def __init__(self,source_path,target_path,primary_key,database_name,table_name):
@@ -36,10 +38,7 @@ class load:
     print('source_path : '+self.source_path)
     print('target_path : '+self.target_path)
     print('key_column(s) : '+self.primary_key)
-    
-    
-    merge_join = ''
-    
+
     for index,key_column in enumerate(self.primary_key):
       if index == 0:
         merge_join = ('tgt.'+key_column+' = src.'+key_column)
@@ -68,8 +67,6 @@ class load:
       print("Delta table exists. Merge needed.") #Log message
        #Run merge
       deltaTable = DeltaTable.forPath(sesh, self.target_path)
-
-      merge_join = None
 
       for index,key_column in enumerate(self.primary_key):
         if index == 0:
@@ -110,7 +107,6 @@ class load:
       view = "src_"+self.table_name
       source_deltas = sesh.read.parquet(self.source_path).createOrReplaceTempView(view) 
       #Build delete SQL
-      merge_join = None
 
       for index,key_column in enumerate(self.primary_key):
         if index == 0:
