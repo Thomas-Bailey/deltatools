@@ -1,6 +1,6 @@
 Welcome to the Deltatools libary!
 --------------
--- Overview --
+Overview
 --------------
 
 This library is a PySpark-only library, designed to work with Databricks. 
@@ -11,7 +11,7 @@ Library name: deltatools
 Author: Thomas Bailey (thomasjohnbailey@gmail.com)
 
 -------------------------------
--- Installation instructions --
+Installation instructions
 -------------------------------
 
 
