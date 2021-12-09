@@ -42,8 +42,8 @@ Contains methods to run checks against data lake storage using dbutils.
 
 Available methods:
 
-    deltatools.verify_lake(path).check_path() 
-        Checks whether 'pass' exists, returns True if so else False.
+    deltatools.verify(path).check_path() 
+        Checks whether 'path' exists, returns True if so else False.
 
 -- deltatools.load_deltas(source_path,target_path,primary_key,database_name,table_name)
 
@@ -64,7 +64,7 @@ Parameter defintions:
 
 Available methods:
 
-    deltatools.load_deltas(source_path,target_path,primary_key,database_name,table_name).info()
+    deltatools.load(source_path,target_path,primary_key,database_name,table_name).info()
         Returns the 'source_path', 'target_path', 'primary_key' parameters and how a merge join statement would be cosntructed.
 
     Example call:
@@ -75,10 +75,10 @@ Available methods:
         db = "contoso"
         tbl = "sales"
 
-        load_deltas(src,tgt,keys,db,tbl).info()
+        load(src,tgt,keys,db,tbl).info()
 
 
-    deltatools.load_deltas(source_path,target_path,primary_key,database_name,table_name).upsert()
+    deltatools.load(source_path,target_path,primary_key,database_name,table_name).upsert()
         If table does not exist, creates a delta lake table with the data in 'source_path' and creates a delta lake table.  
         Infers the schema from source and stores in the metastore, so will appear in the Data UI.
         If table exists, runs an upsert statement:
@@ -98,9 +98,9 @@ Available methods:
             db = "contoso"
             tbl = "sales"
 
-            load_deltas(src,tgt,keys,db,tbl).upsert()
+            load(src,tgt,keys,db,tbl).upsert()
 
-    deltatools.load_deltas(source_path,target_path,primary_key,database_name,table_name).delete()
+    deltatools.load(source_path,target_path,primary_key,database_name,table_name).delete()
         If table exists, creates temporary view of 'source_path' and deletes where not exists in 'target_path'.
         Build Spark SQL  WHERE NOT EXISTS() statement and executes via SparkSession.
 
@@ -112,4 +112,4 @@ Available methods:
             db = "contoso"
             tbl = "sales"
 
-            load_deltas(src,tgt,keys,db,tbl).delete()
+            load_dloadeltas(src,tgt,keys,db,tbl).delete()

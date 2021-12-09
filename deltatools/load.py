@@ -1,24 +1,9 @@
 from pyspark.sql.functions import lit, substring, sha2, concat_ws
-from pyspark.sql import SparkSession
+from pyspark.sql import SparkSession as s
 from delta.tables import *
 
 
-# Functions to run checks against the data lake
-class verify_lake:
-  
-  #Initialise variables
-  def __init__(self,path):
-    self.path = path
-  
-  #check if path exists
-  def check_path(self):
-    try:  
-      dbutils.fs.ls(self.path)
-      return True
-    except:
-      return False
-
-class load_deltas:
+class load:
   
   # Initialise class variables
   def __init__(self,source_path,target_path,primary_key,database_name,table_name):
@@ -50,11 +35,11 @@ class load_deltas:
     #Read delta file as a data frame
     source_deltas = spark.read.parquet(self.source_path)
     # Add a SHA2 row hash column to enable delta indentification
-    source_deltas = source_deltas.withColumn("row_hash",sha2(concat_ws("||", *df.columns), 256))
+    source_deltas = source_deltas.withColumn("row_hash",sha2(concat_ws("||", *source_deltas.columns), 256))
     
     #Determine if merge or new load
     # Check if the delta lake table exists
-    bool_test = verify_lake(self.target_path).check_path()
+    bool_test = verify(self.target_path).check_path()
 
     # If statement evaluating boolean variable.  If the path is True (i.e. we have already created the delta table), then stage in the temp directory. Otherwise, write the table to the lake.
     if bool_test is True:
@@ -91,7 +76,7 @@ class load_deltas:
        
   def delete(self):
     # Check if the delta lake table exists
-    bool_test = verify_lake(self.target_path).check_path()
+    bool_test = verify(self.target_path).check_path()
     if bool_test is True:
       #Concat delta database & table name
       delta_table = self.database_name+'.'+self.table_name
@@ -109,7 +94,7 @@ class load_deltas:
       
       sql = "delete from " + delta_table + " as tgt where not exists (select * from " + view + " as src where " + merge_join + ")"
       print("delete statement: "+sql)
-      sesh = SparkSession.builder.getOrCreate()
+      sesh = s.builder.getOrCreate()
       deletes = sesh.sql(sql)
       deletes.show()
       print("Deletes finished.")
