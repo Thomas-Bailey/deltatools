@@ -74,7 +74,7 @@ Sample call:
         db = "contoso"
         tbl = "sales"
 
-        df = hash(src)
+        df = dtf.hash(src)
 
         dtf.upsert(df,db,tbl,tgt,keys)
 
