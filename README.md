@@ -29,93 +29,71 @@ In your Databricks UI, navigate:
 8. Install
 9. Restart your cluster.
 
---------------
-Features 
---------------
 
-The current available classes & methods are:
+functions
+---
 
--- deltatools.functions.verify(path)
+The current available methods in 'functions' are:
 
-Contains methods to run checks against data lake storage using dbutils.
-'path' is the location you are checking, e.g. path = "dbfs/mnt/data/contoso"
+**check_path(path)**
 
-Available methods:
+Returns `True` if `path` can be found, else `False`.
 
-    deltatools.functions.verify(path).check_path() 
-        Checks whether 'path' exists, returns True if so else False.
+Sample call:
+    from deltatools import functions as dtf
 
--- deltatools.functions.load(source_path,target_path,primary_key,database_name,table_name)
+    path = "dbfs/mnt/data/contoso"
+    dtf.check_path(path)
 
-Performs delta lake insert/update/delete operations.  Parquet files only, please convert any source files to parquet.
 
-Parameter defintions:
+**hash(source_path)**
 
-    source_path
-        Data lake source location (can be folder/container level)
-    target_path
-        Delta lake table location (can be folder/container level, as would be defined in a USING DELTA LOCATION statement)
-    primary_key
-        The primary key for the delta lake table, expects an array e.g. ["id"] or ["customer_id","order_date"]
-    database_name
-        The database in the Databricks workspace as found in the Data UI,
-    table_name
-        The delta lake talbe in the Databricks workspace as found in the database.
+Creates a dataframe from the source path, returns a dataframe with a `row_hash` column (SHA-256)  .
+Source path must be in parquet format.
 
-Available methods:
+Sample call:
+    from deltatools import functions as dtf
 
-    deltatools.functions.load(source_path,target_path,primary_key,database_name,table_name).info()
-        Returns the 'source_path', 'target_path', 'primary_key' parameters and how a merge join statement would be cosntructed.
+    path = "dbfs/mnt/data/contoso"
+    dtf.hash(path)
 
-    Example call:
 
-        from deltatools import functions as f
+**upsert(source_dataset,database_name,table_name,target_path,primary_key)**
+
+Performs an upsert statement against the delta lake table in the `target_path` with the dataframe passed through as `source_dataset`. Executes `whenMatchedUpdateAll()` and `whenNotMatchedInsertAll()` as part of a `merge()`.  Will run the `merge()` based on the `primary_key`, which is submitted as an array to permit composite keys.
+
+If the table does not exist, creates a delta table at the `target_path` and creates an entry in the metastore with the `database_name` and corresponding `table_name`.
+
+Sample call:
+
+        from deltatools import functions as dtf
 
         src="/mnt/data/source/contoso/sales"
         tgt="/mnt/data/delta/contoso/sales"
-        keys=["id"]
+        keys=["id","customer_id"]
         db = "contoso"
         tbl = "sales"
 
-        f.load(src,tgt,keys,db,tbl).info()
+        df = hash(src)
 
+        dtf.upsert(df,db,tbl,tgt,keys)
 
-    deltatools.load(source_path,target_path,primary_key,database_name,table_name).upsert()
-        If table does not exist, creates a delta lake table with the data in 'source_path' and creates a delta lake table.  
-        Infers the schema from source and stores in the metastore, so will appear in the Data UI.
-        If table exists, runs an upsert statement:
-            
-            deltaTable.alias("tgt").merge(
-            source_deltas.alias("src"),
-            merge_join) \
-            .whenMatchedUpdateAll() \
-            .whenNotMatchedInsertAll()\
-            .execute()
+**delete(source_dataset,database_name,table_name,target_path,primary_key)**
 
-        Example call:
+Performs an delete statement against the delta lake table at `database_name.table_name` with the dataframe passed through as `source_dataset`.  Executes a SparkSQL session to call `delete from database_name.table_name as tgt where not exists (select * from source_dataset_temporary_view as src where tgt.id = src.id)`.
 
-            from deltatools import functions as f
+If no table exists at the `target_path`, returns "Table does not exist - no deletions performed" message.
 
-            src="/mnt/data/source/contoso/sales"
-            tgt="/mnt/data/delta/contoso/sales"
-            keys=["id"]
-            db = "contoso"
-            tbl = "sales"
+Sample call:
 
-            f.load(src,tgt,keys,db,tbl).upsert()
+        from deltatools import functions as dtf
 
-    deltatools.load(source_path,target_path,primary_key,database_name,table_name).delete()
-        If table exists, creates temporary view of 'source_path' and deletes where not exists in 'target_path'.
-        Build Spark SQL  WHERE NOT EXISTS() statement and executes via SparkSession.
+        src="/mnt/data/source/contoso/sales"
+        tgt="/mnt/data/delta/contoso/sales"
+        keys=["id","customer_id"]
+        db = "contoso"
+        tbl = "sales"
 
-        Example call:
+        df = hash(src)
 
-            from deltatools import functions as f
-
-            src="/mnt/data/source/contoso/sales"
-            tgt="/mnt/data/delta/contoso/sales"
-            keys=["id"]
-            db = "contoso"
-            tbl = "sales"
-
-            f.load(src,tgt,keys,db,tbl).delete()
+        dtf.delete(df,db,tbl,tgt,keys)
