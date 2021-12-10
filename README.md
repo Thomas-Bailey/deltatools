@@ -1,4 +1,4 @@
-Welcome to the Deltatools libary!
+Welcome to the deltatools library!
 --------------
 Overview
 --------------
