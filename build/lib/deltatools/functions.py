@@ -14,6 +14,22 @@ def check_path(path):
   except:
     return False
 
+def rebuild_path(path):
+  try:
+    list_of_tables = dbutils.fs.ls(path)
+     
+    for file in list_of_tables:
+      if file.name.endswith('/'):
+        list_of_tables.extend(dbutils.fs.ls(file.path))
+        dbutils.fs.rm(file.path, recurse=True)
+        dbutils.fs.mkdirs(file.path)
+      else:
+        dbutils.fs.rm(file.path[0:file.path.rfind('/')+1], recurse=True)
+        dbutils.fs.mkdirs(file.path[0:file.path.rfind('/')+1])
+  except Exception as e:
+    print('Searching for file path failed : '+str(file))
+    raise e
+
 def hash(source_path):
   #Start Spark session
   sesh = s.builder.getOrCreate()

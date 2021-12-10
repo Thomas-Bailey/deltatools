@@ -46,6 +46,17 @@ Sample call:
     path = "dbfs/mnt/data/source/contoso/sales"
     dtf.check_path(path)
 
+**rebuild_path(path)**
+
+Drops (`dbutils.fs.rm`) and recreates (`dbutils.fs.mkdirs`) parent & existing child folder structures.  
+*Warning: this will remove ALL files in child folders*
+
+Sample call:
+
+    from deltatools import functions as dtf
+
+    path = "dbfs/mnt/data/source"
+    dtf.rebuild_path(path)
 
 **hash(source_path)**
 
