@@ -40,9 +40,10 @@ The current available methods in 'functions' are:
 Returns `True` if `path` can be found, else `False`.
 
 Sample call:
+
     from deltatools import functions as dtf
 
-    path = "dbfs/mnt/data/source/contoso"
+    path = "dbfs/mnt/data/source/contoso/sales"
     dtf.check_path(path)
 
 
@@ -52,6 +53,7 @@ Creates a dataframe from the source path, returns a dataframe with a `row_hash` 
 Source path must be in parquet format.
 
 Sample call:
+
     from deltatools import functions as dtf
 
     path = "dbfs/mnt/data/source/contoso/sales"
