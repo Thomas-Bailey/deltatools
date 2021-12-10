@@ -42,7 +42,7 @@ Returns `True` if `path` can be found, else `False`.
 Sample call:
     from deltatools import functions as dtf
 
-    path = "dbfs/mnt/data/contoso"
+    path = "dbfs/mnt/data/source/contoso"
     dtf.check_path(path)
 
 
@@ -54,7 +54,7 @@ Source path must be in parquet format.
 Sample call:
     from deltatools import functions as dtf
 
-    path = "dbfs/mnt/data/contoso"
+    path = "dbfs/mnt/data/source/contoso/sales"
     dtf.hash(path)
 
 
