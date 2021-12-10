@@ -94,6 +94,6 @@ Sample call:
         db = "contoso"
         tbl = "sales"
 
-        df = hash(src)
+        df = dtf.hash(src)
 
         dtf.delete(df,db,tbl,tgt,keys)
