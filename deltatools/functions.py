@@ -4,6 +4,7 @@ from delta.tables import *
 import IPython
 
 dbutils = IPython.get_ipython().user_ns["dbutils"]
+dbutils = IPython.get_ipython().user_ns["spark"]
 
 
 #check if path exists
