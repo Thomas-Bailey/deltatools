@@ -110,3 +110,69 @@ Sample call:
         df = dtf.hash(src)
 
         dtf.delete(df,db,tbl,tgt,keys)
+
+**create_database(database_name)**
+
+Creates the database in the metastore if it does not exist.  Returns message stating whether or not it has been created.
+
+Sample call:
+
+        from deltatools import functions as dtf
+
+        dtf.create_database('conotoso')
+
+**database_exists(database_name)**
+
+Verifies if the database exists.  Returns boolean (if exists, True, else False).
+
+Sample call:
+
+        from deltatools import functions as dtf
+
+        dtf.database_exists('conotoso')
+
+
+**drop_database(database_name)**
+
+Drops the database from the metastore if it exists.  Returns message stating whether or not it has been dropped.  This does not currently delete the data files from the associated tables in storage.
+
+Sample call:
+
+        from deltatools import functions as dtf
+
+        dtf.delete_database('conotoso')
+
+**create_table(schema_name,table_name,schema,path**
+
+Creates  a table name with an object name of *schema_name.table_name* in the storage *path* (e.g. data lake mount point) using the provided DDL *schema*  string (e.g. 'id int, description string, created_date timestamp). Runs check to see if the table already exists.  Returns confirmation message.
+
+Sample call:
+
+        from deltatools import functions as dtf
+
+        schema = 'id int, description string, created_date timestamp'
+
+        loc = '/mnt/data/constoso/product_type'
+
+        dtf.delete_database('conotoso','product_type',schema,loc)
+
+**table_exists(schema_name,table_name)**
+
+Verifies if the table exists.  Returns boolean (if exists, True, else False).
+
+Sample call:
+
+        from deltatools import functions as dtf
+
+        dtf.table_exists('conotoso','product_type')
+
+
+**drop_table(schema_name,table_name)**
+
+Drops table if it exists.  Returns a confirmation message.
+
+Sample call:
+
+        from deltatools import functions as dtf
+
+        dtf.drop_table('conotoso','product_type')

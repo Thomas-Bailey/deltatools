@@ -122,7 +122,7 @@ def create_database(database_name):
   else:
     return print(f"Database '{database_name}' already exists.")
 
-def check_database(database_name):   
+def database_exists(database_name):   
   if spark._jsparkSession.catalog().databaseExists(database_name):
     return True
   else:
@@ -135,14 +135,14 @@ def drop_database(database_name):
   else:
     return print(f"Database '{database_name}' already exists.")
 
-def create_table(schema_name,table_name,schema,location):
+def create_table(schema_name,table_name,schema,path):
   if not spark._jsparkSession.catalog().tableExists(schema_name,table_name):
-    spark.sql(f"CREATE TABLE {schema_name}.{table_name} ({schema}) USING DELTA LOCATION '{location}';")
-    return print(f"Table '{schema_name}.{table_name}' has been created in the metastore at path '{location}'.")
+    spark.sql(f"CREATE TABLE {schema_name}.{table_name} ({schema}) USING DELTA LOCATION '{path}';")
+    return print(f"Table '{schema_name}.{table_name}' has been created in the metastore at path '{path}'.")
   else:
     return print(f"Table '{schema_name}.{table_name}' already exists. Cannot create table.")
 
-def check_table(schema_name,table_name):
+def table_exists(schema_name,table_name):
   if spark._jsparkSession.catalog().tableExists(schema_name,table_name):
     return True
   else:
