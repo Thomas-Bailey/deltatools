@@ -111,7 +111,7 @@ Sample call:
 
         dtf.delete(df,db,tbl,tgt,keys)
 
-**create_database(database_name,spark_session))**
+**create_database(database_name,spark_session)**
 
 Creates the database in the metastore if it does not exist.  Returns message stating whether or not it has been created.
 In Databricks, spark sessions are represented by the global variable 'spark' and can simply be pass through.  Otherwise, initiate a pyspark session as a variable and pass that through.
