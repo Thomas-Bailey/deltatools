@@ -111,10 +111,9 @@ Sample call:
 
         dtf.delete(df,db,tbl,tgt,keys)
 
-**create_database(database_name,spark_session)**
+**create_database(database_name)**
 
 Creates the database in the metastore if it does not exist.  Returns message stating whether or not it has been created.
-In Databricks, spark sessions are represented by the global variable 'spark' and can simply be pass through.  Otherwise, initiate a pyspark session as a variable and pass that through.
 
 Sample call:
 
@@ -122,10 +121,9 @@ Sample call:
 
         dtf.create_database('conotoso',spark)
 
-**database_exists(database_name,spark_session)**
+**database_exists(database_name)**
 
 Verifies if the database exists.  Returns boolean (if exists, True, else False).
-In Databricks, spark sessions are represented by the global variable 'spark' and can simply be pass through.  Otherwise, initiate a pyspark session as a variable and pass that through.
 
 Sample call:
 
@@ -134,10 +132,9 @@ Sample call:
         dtf.database_exists('conotoso',spark)
 
 
-**drop_database(database_name,spark_session)**
+**drop_database(database_name)**
 
 Drops the database from the metastore if it exists.  Returns message stating whether or not it has been dropped.  This does not currently delete the data files from the associated tables in storage.
-In Databricks, spark sessions are represented by the global variable 'spark' and can simply be pass through.  Otherwise, initiate a pyspark session as a variable and pass that through.
 
 Sample call:
 
@@ -145,10 +142,9 @@ Sample call:
 
         dtf.delete_database('conotoso',spark)
 
-**create_table(schema_name,table_name,schema,path,spark_session)**
+**create_table(schema_name,table_name,schema,path)**
 
 Creates  a table name with an object name of *schema_name.table_name* in the storage *path* (e.g. data lake mount point) using the provided DDL *schema*  string (e.g. 'id int, description string, created_date timestamp). Runs check to see if the table already exists.  Returns confirmation message.
-In Databricks, spark sessions are represented by the global variable 'spark' and can simply be pass through.  Otherwise, initiate a pyspark session as a variable and pass that through.
 
 Sample call:
 
@@ -160,10 +156,9 @@ Sample call:
 
         dtf.delete_database('conotoso','product_type',schema,loc,spark)
 
-**table_exists(schema_name,table_name,spark_session)**
+**table_exists(schema_name,table_name)**
 
 Verifies if the table exists.  Returns boolean (if exists, True, else False).
-In Databricks, spark sessions are represented by the global variable 'spark' and can simply be pass through.  Otherwise, initiate a pyspark session as a variable and pass that through.
 
 Sample call:
 
@@ -172,10 +167,9 @@ Sample call:
         dtf.table_exists('conotoso','product_type',spark)
 
 
-**drop_table(schema_name,table_name,spark_session)**
+**drop_table(schema_name,table_name)**
 
 Drops table if it exists.  Returns a confirmation message.
-In Databricks, spark sessions are represented by the global variable 'spark' and can simply be pass through.  Otherwise, initiate a pyspark session as a variable and pass that through.
 
 Sample call:
 
