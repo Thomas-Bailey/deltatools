@@ -2,10 +2,12 @@ from pyspark.sql.functions import lit, substring, sha2, concat_ws
 from pyspark.sql import SparkSession as s
 from delta.tables import *
 import IPython
+from pyspark.context import SparkContext
+from pyspark.sql.session import SparkSession
+sc = SparkContext('local')
+spark = SparkSession(sc)
 
 dbutils = IPython.get_ipython().user_ns["dbutils"]
-dbutils = IPython.get_ipython().user_ns["pyspark"]
-
 
 #check if path exists
 def check_path(path):
