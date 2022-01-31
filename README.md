@@ -58,7 +58,7 @@ Sample call:
     path = "dbfs/mnt/data/source"
     dtf.rebuild_path(path)
 
-**hash(source_path)**
+**hash_path(source_path)**
 
 Creates a dataframe from the source path, returns a dataframe with a `row_hash` column (SHA-256)  .
 Source path must be in parquet format.
@@ -69,6 +69,17 @@ Sample call:
 
     path = "dbfs/mnt/data/source/contoso/sales"
     dtf.hash(path)
+
+**hash_dataframe(dataframe)**
+
+Takes the input dataframe and returns a dataframe with a `row_hash` column (SHA-256).
+Sample call:
+
+    from deltatools import functions as dtf
+
+    df = spark.read.json([json_object])
+    dtf.hash_dataframe(df)
+
 
 
 **upsert(source_dataset,database_name,table_name,target_path,primary_key)**

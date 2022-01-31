@@ -2,7 +2,10 @@ from pyspark.sql.functions import lit, substring, sha2, concat_ws
 from pyspark.sql import SparkSession as s
 from delta.tables import *
 import IPython
-
+from pyspark.context import SparkContext
+from pyspark.sql.session import SparkSession
+sc = SparkContext('local')
+spark = SparkSession(sc)
 
 dbutils = IPython.get_ipython().user_ns["dbutils"]
 
@@ -30,7 +33,7 @@ def rebuild_path(path):
     print('Searching for file path failed : '+str(file))
     raise e
 
-def hash(source_path):
+def hash_path(source_path):
   #Start Spark session
   sesh = s.builder.getOrCreate()
 
@@ -42,14 +45,12 @@ def hash(source_path):
 
   return source_deltas
 
-def hash_dataframe(df):
-  #Start Spark session
-  sesh = s.builder.getOrCreate()
+def hash_dataframe(dataframe):
 
   # Add a SHA2 row hash column to enable delta indentification
-  hashed_df = df.withColumn("row_hash",sha2(concat_ws("||", *df.columns), 256))
+  hashed_dataframe = dataframe.withColumn("row_hash",sha2(concat_ws("||", *dataframe.columns), 256))
 
-  return hashed_df
+  return hashed_dataframe
 
 #Run merge from source to target
 def upsert(source_dataset,database_name,table_name,target_path,primary_key):
@@ -124,54 +125,42 @@ def delete(source_dataset,database_name,table_name,target_path,primary_key):
     print("Table does not exist - no deletions performed.")
     pass
 
-def create_database(database_name):
-  #Start Spark session
-  sesh = s.builder.getOrCreate()
-  if not sesh._jsparkSession.catalog().databaseExists(database_name):
-    sesh.sql(f"CREATE DATABASE {database_name};")
+def create_database(database_name): 
+  if not spark._jsparkSession.catalog().databaseExists(database_name):
+    spark.sql(f"CREATE DATABASE {database_name};")
     return print(f"Database '{database_name}' has been created in the metastore")
   else:
     return print(f"Database '{database_name}' already exists.")
 
-def database_exists(database_name,):   
-  #Start Spark session
-  sesh = s.builder.getOrCreate() 
-  if sesh._jsparkSession.catalog().databaseExists(database_name):
+def database_exists(database_name):   
+  if spark._jsparkSession.catalog().databaseExists(database_name):
     return True
   else:
     return False
 
-def drop_database(database_name):  
-  #Start Spark session
-  sesh = s.builder.getOrCreate() 
-  if sesh._jsparkSession.catalog().databaseExists(database_name):
-    sesh.sql(f"DROP DATABASE {database_name};")
+def drop_database(database_name):   
+  if spark._jsparkSession.catalog().databaseExists(database_name):
+    spark.sql(f"DROP DATABASE {database_name};")
     return print(f"Database '{database_name}' has been dropped from the metastore")
   else:
     return print(f"Database '{database_name}' already exists.")
 
 def create_table(schema_name,table_name,schema,path):
-  #Start Spark session
-  sesh = s.builder.getOrCreate()
-  if not sesh._jsparkSession.catalog().tableExists(schema_name,table_name):
-    sesh.sql(f"CREATE TABLE {schema_name}.{table_name} ({schema}) USING DELTA LOCATION '{path}';")
+  if not spark._jsparkSession.catalog().tableExists(schema_name,table_name):
+    spark.sql(f"CREATE TABLE {schema_name}.{table_name} ({schema}) USING DELTA LOCATION '{path}';")
     return print(f"Table '{schema_name}.{table_name}' has been created in the metastore at path '{path}'.")
   else:
     return print(f"Table '{schema_name}.{table_name}' already exists. Cannot create table.")
 
 def table_exists(schema_name,table_name):
-  #Start Spark session
-  sesh = s.builder.getOrCreate()
-  if sesh._jsparkSession.catalog().tableExists(schema_name,table_name):
+  if spark._jsparkSession.catalog().tableExists(schema_name,table_name):
     return True
   else:
     return False
 
 def drop_table(schema_name,table_name):
-  #Start Spark session
-  sesh = s.builder.getOrCreate()
-  if sesh._jsparkSession.catalog().tableExists(schema_name,table_name):
-    sesh.sql(f"DROP TABLE {schema_name}.{table_name};")
+  if spark._jsparkSession.catalog().tableExists(schema_name,table_name):
+    spark.sql(f"DROP TABLE {schema_name}.{table_name};")
     return print(f"Table '{schema_name}.{table_name}' has been dropped from the metastore")
   else:
     return False

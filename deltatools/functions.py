@@ -33,7 +33,7 @@ def rebuild_path(path):
     print('Searching for file path failed : '+str(file))
     raise e
 
-def hash(source_path):
+def hash_path(source_path):
   #Start Spark session
   sesh = s.builder.getOrCreate()
 
@@ -44,6 +44,13 @@ def hash(source_path):
   source_deltas = source_deltas.withColumn("row_hash",sha2(concat_ws("||", *source_deltas.columns), 256))
 
   return source_deltas
+
+def hash_dataframe(dataframe):
+
+  # Add a SHA2 row hash column to enable delta indentification
+  hashed_dataframe = dataframe.withColumn("row_hash",sha2(concat_ws("||", *dataframe.columns), 256))
+
+  return hashed_dataframe
 
 #Run merge from source to target
 def upsert(source_dataset,database_name,table_name,target_path,primary_key):
