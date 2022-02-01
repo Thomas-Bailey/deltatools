@@ -29,6 +29,8 @@ In your Databricks UI, navigate:
 8. Install
 9. Restart your cluster.
 
+When updating versions, uninstall the previous deltatools .whl file and then proceed with the above instructions.
+
 
 functions
 ---
