@@ -155,9 +155,9 @@ Sample call:
 
         dtf.delete_database('conotoso',spark)
 
-**create_table(schema_name,table_name,schema,path)**
+**create_table(database_name,table_name,schema,path)**
 
-Creates  a table name with an object name of *schema_name.table_name* in the storage *path* (e.g. data lake mount point) using the provided DDL *schema*  string (e.g. 'id int, description string, created_date timestamp). Runs check to see if the table already exists.  Returns confirmation message.
+Creates  a table name with an object name of *database_name.table_name* in the storage *path* (e.g. data lake mount point) using the provided DDL *schema*  string (e.g. 'id int, description string, created_date timestamp). Runs check to see if the table already exists.  Returns confirmation message.
 
 Sample call:
 
@@ -169,7 +169,7 @@ Sample call:
 
         dtf.delete_database('conotoso','product_type',schema,loc,spark)
 
-**table_exists(schema_name,table_name)**
+**table_exists(database_name,table_name)**
 
 Verifies if the table exists.  Returns boolean (if exists, True, else False).
 
@@ -180,7 +180,7 @@ Sample call:
         dtf.table_exists('conotoso','product_type',spark)
 
 
-**drop_table(schema_name,table_name)**
+**drop_table(database_name,table_name)**
 
 Drops table if it exists.  Returns a confirmation message.
 

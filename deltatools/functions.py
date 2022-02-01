@@ -141,22 +141,22 @@ def drop_database(database_name):
   else:
     return print(f"Database '{database_name}' already exists.")
 
-def create_table(schema_name,table_name,schema,path):
-  if not spark._jsparkSession.catalog().tableExists(schema_name,table_name):
-    spark.sql(f"CREATE TABLE {schema_name}.{table_name} ({schema}) USING DELTA LOCATION '{path}';")
-    return print(f"Table '{schema_name}.{table_name}' has been created in the metastore at path '{path}'.")
+def create_table(database_name,table_name,schema,path):
+  if not spark._jsparkSession.catalog().tableExists(database_name,table_name):
+    spark.sql(f"CREATE TABLE {database_name}.{table_name} ({schema}) USING DELTA LOCATION '{path}';")
+    return print(f"Table '{database_name}.{table_name}' has been created in the metastore at path '{path}'.")
   else:
-    return print(f"Table '{schema_name}.{table_name}' already exists. Cannot create table.")
+    return print(f"Table '{database_name}.{table_name}' already exists. Cannot create table.")
 
-def table_exists(schema_name,table_name):
-  if spark._jsparkSession.catalog().tableExists(schema_name,table_name):
+def table_exists(database_name,table_name):
+  if spark._jsparkSession.catalog().tableExists(database_name,table_name):
     return True
   else:
     return False
 
-def drop_table(schema_name,table_name):
-  if spark._jsparkSession.catalog().tableExists(schema_name,table_name):
-    spark.sql(f"DROP TABLE {schema_name}.{table_name};")
-    return print(f"Table '{schema_name}.{table_name}' has been dropped from the metastore")
+def drop_table(database_name,table_name):
+  if spark._jsparkSession.catalog().tableExists(database_name,table_name):
+    spark.sql(f"DROP TABLE {database_name}.{table_name};")
+    return print(f"Table '{database_name}.{table_name}' has been dropped from the metastore")
   else:
     return False
