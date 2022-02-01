@@ -100,7 +100,7 @@ Sample call:
         db = "contoso"
         tbl = "sales"
 
-        df = dtf.hash(src)
+        df = dtf.hash_dataframe(src)
 
         dtf.upsert(df,db,tbl,tgt,keys)
 
@@ -120,7 +120,7 @@ Sample call:
         db = "contoso"
         tbl = "sales"
 
-        df = dtf.hash(src)
+        df = dtf.hash_dataframe(src)
 
         dtf.delete(df,db,tbl,tgt,keys)
 
