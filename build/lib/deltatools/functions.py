@@ -49,7 +49,7 @@ def hash_dataframe(dataframe):
   return hashed_dataframe
 
 #Run merge from source to target
-def upsert(source_dataset,database_name,table_name,target_path,primary_key):
+def upsert(source_dataset,database_name,table_name,target_path,primary_key,condition=None):
   #Start Spark session
   sesh = s.builder.getOrCreate()
     
@@ -70,14 +70,23 @@ def upsert(source_dataset,database_name,table_name,target_path,primary_key):
         merge_join = ('tgt.'+key_column+' = src.'+key_column)
       else:
         merge_join = merge_join + (' and tgt.'+key_column+' = src.'+key_column)
+    if condition == None:
+      deltaTable.alias("tgt").merge(
+          source_dataset.alias("src"),
+          merge_join) \
+        .whenMatchedUpdateAll() \
+        .whenNotMatchedInsertAll()\
+        .execute()
+      print('Merge completed successfully, merge join was: "'+ merge_join+'"')
+    else:
+      deltaTable.alias("tgt").merge(
+          source_dataset.alias("src"),
+          merge_join) \
+        .whenMatchedUpdateAll(condition) \
+        .whenNotMatchedInsertAll()\
+        .execute()
+      print('Merge completed successfully, merge join was: "'+ merge_join+'"')
 
-    deltaTable.alias("tgt").merge(
-        source_dataset.alias("src"),
-        merge_join) \
-      .whenMatchedUpdateAll() \
-      .whenNotMatchedInsertAll()\
-      .execute()
-    print('Merge completed successfully, merge join was: "'+ merge_join+'"')
 
   else:
     print("No delta lake files found. Creating delta lake table & metastore object.")
@@ -88,7 +97,39 @@ def upsert(source_dataset,database_name,table_name,target_path,primary_key):
     source_dataset.write.format("delta").mode("overwrite").saveAsTable(delta_table,mode='overwrite',path=target_path)
     print("Table created and in metastore")
   
-      
+def soft_delete(id_list,database_name,table_name,target_path,key_columns,column):
+  #Start Spark session
+  sesh = s.builder.getOrCreate()
+
+  rdd = sesh.sparkContext.parallelize(id_list)
+  source_dataset = sesh.createDataFrame(rdd)
+
+  # Check if the delta lake table exists
+  bool_test = check_path(target_path)
+  if bool_test is True:
+  #create a temporary SQL view from the source deltas data frame
+    view = "src_"+table_name
+    source_dataset.createOrReplaceTempView(view)
+
+    #Build delete SQL
+
+    merge_join = None
+
+    for index,key_column in enumerate(key_columns):
+      if index == 0:
+        merge_join = ('tgt.'+key_column+' = src.'+key_column)
+      else:
+        merge_join = merge_join + (' and tgt.'+key_column+' = src.'+key_column)
+
+    sql = f"update {database_name}.{table_name} as tgt set {column} = True where exists (select * from {view} as src where {merge_join})"
+    print("Update statement: "+sql)
+    deletes = sesh.sql(sql)
+    deletes.show()
+    print("Soft Delete finished.")
+  else:
+    print("Table does not exist - no soft deletes performed.")
+    pass
+
 def delete(source_dataset,database_name,table_name,target_path,primary_key):
   #Start Spark session
   sesh = s.builder.getOrCreate()

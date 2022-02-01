@@ -84,13 +84,15 @@ Sample call:
 
 
 
-**upsert(source_dataset,database_name,table_name,target_path,primary_key)**
+**upsert(source_dataset,database_name,table_name,target_path,primary_key,condition=None)**
 
 Performs an upsert statement against the delta lake table in the `target_path` with the dataframe passed through as `source_dataset`. Executes `whenMatchedUpdateAll()` and `whenNotMatchedInsertAll()` as part of a `merge()`.  Will run the `merge()` based on the `primary_key`, which is submitted as an array to permit composite keys.
 
 If the table does not exist, creates a delta table at the `target_path` and creates an entry in the metastore with the `database_name` and corresponding `table_name`.
 
-Sample call:
+You can pass an optional condition parameter.  Remember that source and target will always be aliased as 'src' and 'tgt' respectively.  This should be passed as a string and multiple conditions can be added with 'AND' or 'OR'.
+
+Sample call without a condition:
 
         from deltatools import functions as dtf
 
@@ -104,9 +106,45 @@ Sample call:
 
         dtf.upsert(df,db,tbl,tgt,keys)
 
+Sample call with a condition:
+
+        from deltatools import functions as dtf
+
+        src="/mnt/data/source/contoso/sales"
+        tgt="/mnt/data/delta/contoso/sales"
+        keys=["id","customer_id"]
+        db = "contoso"
+        tbl = "sales"
+        condition = "tgt.row_hash <> src.row_hash"
+
+        df = dtf.hash_dataframe(src)
+
+        dtf.upsert(df,db,tbl,tgt,keys,condition)
+
+**soft_delete(id_list,database_name,table_name,target_path,key_columns,column)**
+
+Performs a soft delete statement against the delta lake table at `database_name.table_name` with a list passed through as `id_list`, which should be an array.  Executes a SparkSQL session to call `"update {database_name}.{table_name} as tgt set {column} = True where exists (select * from {view} as src where {merge_join})"`, where `view` is a conversion of `id_list` to a temporary SQL view.
+
+If no table exists at the `target_path`, returns "Table does not exist - no soft deletes performed" message.
+
+Sample call:
+
+        from deltatools import functions as dtf
+
+        id_list = ['1000','2000','3000']
+        tgt="/mnt/data/delta/contoso/sales"
+        keys=["id"]
+        db = "contoso"
+        tbl = "sales"
+        column = 'is_deleted'
+
+        df = dtf.hash_dataframe(src)
+
+        dtf.soft_delete(id_list,db,tbl,tgt,keys,column)
+
 **delete(source_dataset,database_name,table_name,target_path,primary_key)**
 
-Performs an delete statement against the delta lake table at `database_name.table_name` with the dataframe passed through as `source_dataset`.  Executes a SparkSQL session to call `delete from database_name.table_name as tgt where not exists (select * from source_dataset_temporary_view as src where tgt.id = src.id)`.
+Performs a hard delete statement against the delta lake table at `database_name.table_name` with the dataframe passed through as `source_dataset`.  Executes a SparkSQL session to call `delete from database_name.table_name as tgt where not exists (select * from source_dataset_temporary_view as src where tgt.id = src.id)`.
 
 If no table exists at the `target_path`, returns "Table does not exist - no deletions performed" message.
 
