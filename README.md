@@ -138,8 +138,6 @@ Sample call:
         tbl = "sales"
         column = 'is_deleted'
 
-        df = dtf.hash_dataframe(src)
-
         dtf.soft_delete(id_list,db,tbl,tgt,keys,column)
 
 **delete(source_dataset,database_name,table_name,target_path,primary_key)**
