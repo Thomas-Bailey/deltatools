@@ -70,7 +70,7 @@ Sample call:
     from deltatools import functions as dtf
 
     path = "dbfs/mnt/data/source/contoso/sales"
-    dtf.hash(path)
+    dtf.hash_path(path)
 
 **hash_dataframe(dataframe)**
 
