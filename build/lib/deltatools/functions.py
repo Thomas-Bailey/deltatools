@@ -1,6 +1,8 @@
-from pyspark.sql.functions import lit, substring, sha2, concat_ws
+from pyspark.sql.functions import sha2, concat_ws
 from pyspark.sql import SparkSession as s
+from pyspark.sql.types import StructType,StructField, StringType
 from delta.tables import *
+from deltatools import functions as dtf
 import IPython
 
 dbutils = IPython.get_ipython().user_ns["dbutils"]
@@ -98,37 +100,39 @@ def upsert(source_dataset,database_name,table_name,target_path,primary_key,condi
     print("Table created and in metastore")
   
 def soft_delete(id_list,database_name,table_name,target_path,key_columns,column):
-  #Start Spark session
-  sesh = s.builder.getOrCreate()
-
-  rdd = sesh.sparkContext.parallelize(id_list)
-  source_dataset = sesh.createDataFrame(rdd)
-
-  # Check if the delta lake table exists
-  bool_test = check_path(target_path)
-  if bool_test is True:
-  #create a temporary SQL view from the source deltas data frame
-    view = "src_"+table_name
-    source_dataset.createOrReplaceTempView(view)
-
-    #Build delete SQL
-
-    merge_join = None
-
-    for index,key_column in enumerate(key_columns):
-      if index == 0:
-        merge_join = ('tgt.'+key_column+' = src.'+key_column)
+    try:
+      #Start Spark session
+      sesh = s.builder.getOrCreate() 
+      # Check if the delta lake table exists
+      bool_test = dtf.check_path(target_path)
+      if bool_test is True:
+        # check if the list have more than 1 key column to create dataframe
+        if len(key_columns) > 1:
+          rdd = sesh.sparkContext.parallelize(id_list)
+          source_dataset = sesh.createDataFrame(rdd).toDF(*key_columns)
+        else:
+          id_list =  zip(id_list)
+          source_dataset = sesh.createDataFrame(id_list, StructType([StructField("id", StringType(), True)]))
+        #create a temporary SQL view from the source deltas data frame
+        view = "src_"+table_name
+        source_dataset.createOrReplaceTempView(view)
+        #Build delete SQL
+        merge_join = None
+        for index,key_column in enumerate(key_columns):
+          if index == 0:
+            merge_join = ('tgt.'+key_column+' = src.'+key_column)
+          else:
+            merge_join = merge_join + (' and tgt.'+key_column+' = src.'+key_column)
+        sql = f"update {database_name}.{table_name} as tgt set {column} = True where exists (select * from {view} as src where {merge_join})"
+        print("Update statement: "+sql)
+        deletes = sesh.sql(sql)
+        deletes.show()
+        print("Soft Delete finished.")
       else:
-        merge_join = merge_join + (' and tgt.'+key_column+' = src.'+key_column)
-
-    sql = f"update {database_name}.{table_name} as tgt set {column} = True where exists (select * from {view} as src where {merge_join})"
-    print("Update statement: "+sql)
-    deletes = sesh.sql(sql)
-    deletes.show()
-    print("Soft Delete finished.")
-  else:
-    print("Table does not exist - no soft deletes performed.")
-    pass
+        print("Table does not exist - no soft deletes performed.")
+        pass
+    except Exception as e:
+      print(str(e))
 
 def delete(source_dataset,database_name,table_name,target_path,primary_key):
   #Start Spark session
@@ -163,41 +167,53 @@ def delete(source_dataset,database_name,table_name,target_path,primary_key):
     pass
 
 def create_database(database_name): 
-  if not spark._jsparkSession.catalog().databaseExists(database_name):
-    spark.sql(f"CREATE DATABASE {database_name};")
+  #Start Spark session
+  sesh = s.builder.getOrCreate()
+  if not sesh._jsparkSession.catalog().databaseExists(database_name):
+    sesh.sql(f"CREATE DATABASE {database_name};")
     return print(f"Database '{database_name}' has been created in the metastore")
   else:
     return print(f"Database '{database_name}' already exists.")
 
-def database_exists(database_name):   
-  if spark._jsparkSession.catalog().databaseExists(database_name):
+def database_exists(database_name):  
+  #Start Spark session
+  sesh = s.builder.getOrCreate()
+  if sesh._jsparkSession.catalog().databaseExists(database_name):
     return True
   else:
     return False
 
-def drop_database(database_name):   
-  if spark._jsparkSession.catalog().databaseExists(database_name):
-    spark.sql(f"DROP DATABASE {database_name};")
+def drop_database(database_name):  
+  #Start Spark session
+  sesh = s.builder.getOrCreate() 
+  if sesh._jsparkSession.catalog().databaseExists(database_name):
+    sesh.sql(f"DROP DATABASE {database_name};")
     return print(f"Database '{database_name}' has been dropped from the metastore")
   else:
     return print(f"Database '{database_name}' already exists.")
 
 def create_table(database_name,table_name,schema,path):
-  if not spark._jsparkSession.catalog().tableExists(database_name,table_name):
-    spark.sql(f"CREATE TABLE {database_name}.{table_name} ({schema}) USING DELTA LOCATION '{path}';")
+  #Start Spark session
+  sesh = s.builder.getOrCreate()
+  if not sesh._jsparkSession.catalog().tableExists(database_name,table_name):
+    sesh.sql(f"CREATE TABLE {database_name}.{table_name} ({schema}) USING DELTA LOCATION '{path}';")
     return print(f"Table '{database_name}.{table_name}' has been created in the metastore at path '{path}'.")
   else:
     return print(f"Table '{database_name}.{table_name}' already exists. Cannot create table.")
 
 def table_exists(database_name,table_name):
-  if spark._jsparkSession.catalog().tableExists(database_name,table_name):
+  #Start Spark session
+  sesh = s.builder.getOrCreate()
+  if sesh._jsparkSession.catalog().tableExists(database_name,table_name):
     return True
   else:
     return False
 
 def drop_table(database_name,table_name):
-  if spark._jsparkSession.catalog().tableExists(database_name,table_name):
-    spark.sql(f"DROP TABLE {database_name}.{table_name};")
+  #Start Spark session
+  sesh = s.builder.getOrCreate()
+  if sesh._jsparkSession.catalog().tableExists(database_name,table_name):
+    sesh.sql(f"DROP TABLE {database_name}.{table_name};")
     return print(f"Table '{database_name}.{table_name}' has been dropped from the metastore")
   else:
     return False
