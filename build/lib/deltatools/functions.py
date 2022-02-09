@@ -209,11 +209,16 @@ def table_exists(database_name,table_name):
   else:
     return False
 
-def drop_table(database_name,table_name):
+def drop_table(database_name,table_name,drop_files_location=False):
   #Start Spark session
   sesh = s.builder.getOrCreate()
-  if sesh._jsparkSession.catalog().tableExists(database_name,table_name):
+  if sesh._jsparkSession.catalog().tableExists(database_name,table_name) and not drop_files_location:
     sesh.sql(f"DROP TABLE {database_name}.{table_name};")
     return print(f"Table '{database_name}.{table_name}' has been dropped from the metastore")
+  elif sesh._jsparkSession.catalog().tableExists(database_name,table_name) and drop_files_location:
+    sesh.sql(f"DROP TABLE {database_name}.{table_name};")
+    loc = sesh.sql(f"describe detail {database_name}.{table_name}").collect()[0]['location']
+    dbutils.fs.rm(loc, recurse=True)
+    return print(f"Table '{database_name}.{table_name}' has been dropped from the metastore")
   else:
-    return False
+    return print(f"Table '{database_name}.{table_name}' does not exist. Cannot drop table.")

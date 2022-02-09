@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: deltatools
-Version: 0.2.6
+Version: 0.2.7
 Summary: Automates source to target loads from data lake to Delta Lake tables.
 Home-page: UNKNOWN
 Author: Thomas Bailey (thomasjohnbailey@gmail.com)
