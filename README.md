@@ -216,9 +216,10 @@ Sample call:
         dtf.table_exists('conotoso','product_type',spark)
 
 
-**drop_table(database_name,table_name)**
+**drop_table(database_name,table_name,drop_files_location=False)**
 
 Drops table if it exists.  Returns a confirmation message.
+If `drop_files_location` is set to `True`, then the location (and any sub-folders) is also dropped from the storage location. Default is False.
 
 Sample call:
 
