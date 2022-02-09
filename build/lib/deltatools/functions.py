@@ -216,8 +216,8 @@ def drop_table(database_name,table_name,drop_files_location=False):
     sesh.sql(f"DROP TABLE {database_name}.{table_name};")
     return print(f"Table '{database_name}.{table_name}' has been dropped from the metastore")
   elif sesh._jsparkSession.catalog().tableExists(database_name,table_name) and drop_files_location:
-    sesh.sql(f"DROP TABLE {database_name}.{table_name};")
     loc = sesh.sql(f"describe detail {database_name}.{table_name}").collect()[0]['location']
+    sesh.sql(f"DROP TABLE {database_name}.{table_name};")
     dbutils.fs.rm(loc, recurse=True)
     return print(f"Table '{database_name}.{table_name}' has been dropped from the metastore")
   else:
